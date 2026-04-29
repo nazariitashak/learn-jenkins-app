@@ -71,8 +71,25 @@ pipeline {
                 }
             }
         }
+        stage('Deploy stage') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                    npm install netlify-cli
+                    node_modules/.bin/netlify --version
+                    echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
+                    node_modules/.bin/netlify status
+                    node_modules/.bin/netlify deploy --dir=build
+                '''
+            }
+        }
 
-        stage('Deploy') {
+        stage('Deploy prod') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -89,6 +106,7 @@ pipeline {
                 '''
             }
         }
+
         stage('Prod E2E') {
             environment {
                 CI_ENVIRONMENT_URL = 'https://lucky-dusk-978536.netlify.app'
